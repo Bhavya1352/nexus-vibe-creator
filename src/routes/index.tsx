@@ -1,29 +1,87 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { Hero } from "@/components/autovibe/Hero";
+import { Processing } from "@/components/autovibe/Processing";
+import { Results } from "@/components/autovibe/Results";
+import { Nav } from "@/components/autovibe/Nav";
+import { Particles } from "@/components/autovibe/Particles";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "AutoVibe — AI GTM Agent" },
+      {
+        name: "description",
+        content:
+          "AutoVibe turns any product into a cultural movement with AI-powered storytelling, vibe detection, and instant launch campaigns.",
+      },
+      { property: "og:title", content: "AutoVibe — AI GTM Agent" },
+      {
+        property: "og:description",
+        content:
+          "Turn any product into a cultural movement. AI-powered campaigns in under 30 seconds.",
+      },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+type View = "hero" | "processing" | "results";
+
 function Index() {
+  const [view, setView] = useState<View>("hero");
+  const [prompt, setPrompt] = useState("");
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <div className="ring-grid pointer-events-none absolute inset-0" />
+      <Particles />
+      <Nav />
+
+      <AnimatePresence mode="wait">
+        {view === "hero" && (
+          <motion.div
+            key="hero"
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Hero
+              onLaunch={(p) => {
+                setPrompt(p);
+                setView("processing");
+              }}
+            />
+          </motion.div>
+        )}
+        {view === "processing" && (
+          <motion.div
+            key="processing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Processing onDone={() => setView("results")} />
+          </motion.div>
+        )}
+        {view === "results" && (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Results
+              prompt={prompt}
+              onReset={() => {
+                setPrompt("");
+                setView("hero");
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
   );
 }
